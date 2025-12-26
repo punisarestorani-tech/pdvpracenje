@@ -39,35 +39,47 @@ export default function TeamMembersPage() {
 
     setLoading(true)
     try {
-      const { data, error } = await supabase
+      // First get organization members
+      const { data: membersData, error: membersError } = await supabase
         .from('organization_members')
-        .select(`
-          id,
-          user_id,
-          role,
-          created_at,
-          profiles:user_id (
-            full_name
-          )
-        `)
+        .select('id, user_id, role, created_at')
         .eq('organization_id', currentOrganization.id)
         .order('created_at', { ascending: true })
 
-      if (error) throw error
+      if (membersError) throw membersError
 
-      // Get user emails from auth (we need to do this separately)
+      // Get current user
       const { data: { user } } = await supabase.auth.getUser()
 
-      const membersWithEmail = (data || []).map((m: any) => ({
+      // Get profiles for all member user_ids
+      const userIds = (membersData || []).map(m => m.user_id)
+
+      let profilesMap: Record<string, { full_name: string | null, email?: string }> = {}
+
+      if (userIds.length > 0) {
+        const { data: profilesData } = await supabase
+          .from('profiles')
+          .select('id, full_name')
+          .in('id', userIds)
+
+        if (profilesData) {
+          profilesData.forEach((p: any) => {
+            profilesMap[p.id] = { full_name: p.full_name }
+          })
+        }
+      }
+
+      const membersWithEmail = (membersData || []).map((m: any) => ({
         ...m,
         user: {
           email: m.user_id === user?.id ? user?.email : 'korisnik@email.com',
-          full_name: m.profiles?.full_name || null
+          full_name: profilesMap[m.user_id]?.full_name || null
         }
       }))
 
       setMembers(membersWithEmail)
     } catch (error: any) {
+      console.error('Error loading members:', error)
       toast.error('Greska pri ucitavanju clanova')
     } finally {
       setLoading(false)
