@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
 import { useOrganization } from '@/lib/organization-context'
@@ -21,8 +22,13 @@ interface HeaderProps {
 // User Profile Dropdown Component - defined before Header
 function UserProfileDropdown({ user, onLogout }: { user: HeaderProps['user']; onLogout: () => void }) {
   const [showDropdown, setShowDropdown] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const buttonRef = useRef<HTMLButtonElement>(null)
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0 })
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   useEffect(() => {
     if (showDropdown && buttonRef.current) {
@@ -33,6 +39,66 @@ function UserProfileDropdown({ user, onLogout }: { user: HeaderProps['user']; on
       })
     }
   }, [showDropdown])
+
+  const dropdownContent = showDropdown && mounted ? (
+    <>
+      <div
+        className="fixed inset-0"
+        style={{ zIndex: 9998 }}
+        onClick={() => setShowDropdown(false)}
+      />
+      <div
+        className="fixed w-56 bg-navy-800 rounded-lg shadow-2xl border border-navy-600 py-1"
+        style={{
+          top: dropdownPosition.top,
+          right: dropdownPosition.right,
+          zIndex: 9999
+        }}
+      >
+        {/* User Info */}
+        <div className="px-4 py-3 border-b border-navy-700">
+          <p className="text-sm font-medium text-white truncate">
+            {user.fullName || 'Korisnik'}
+          </p>
+          <p className="text-xs text-navy-400 truncate">{user.email}</p>
+        </div>
+
+        {/* Menu Items */}
+        <div className="py-1">
+          <Link
+            href="/dashboard/profile"
+            onClick={() => setShowDropdown(false)}
+            className="flex items-center gap-3 px-4 py-2 text-sm text-navy-300 hover:bg-navy-700 hover:text-white transition-colors"
+          >
+            <User size={16} />
+            Moj profil
+          </Link>
+          <Link
+            href="/dashboard/settings"
+            onClick={() => setShowDropdown(false)}
+            className="flex items-center gap-3 px-4 py-2 text-sm text-navy-300 hover:bg-navy-700 hover:text-white transition-colors"
+          >
+            <Settings size={16} />
+            Podesavanja
+          </Link>
+        </div>
+
+        {/* Logout */}
+        <div className="border-t border-navy-700 py-1">
+          <button
+            onClick={() => {
+              setShowDropdown(false)
+              onLogout()
+            }}
+            className="flex items-center gap-3 w-full px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
+          >
+            <LogOut size={16} />
+            Odjava
+          </button>
+        </div>
+      </div>
+    </>
+  ) : null
 
   return (
     <div className="relative">
@@ -50,60 +116,7 @@ function UserProfileDropdown({ user, onLogout }: { user: HeaderProps['user']; on
         <ChevronDown size={14} className="text-navy-400 hidden lg:block" />
       </button>
 
-      {showDropdown && (
-        <>
-          <div
-            className="fixed inset-0 z-40"
-            onClick={() => setShowDropdown(false)}
-          />
-          <div
-            className="fixed w-56 bg-navy-800 rounded-lg shadow-xl border border-navy-600 z-50 py-1"
-            style={{ top: dropdownPosition.top, right: dropdownPosition.right }}
-          >
-            {/* User Info */}
-            <div className="px-4 py-3 border-b border-navy-700">
-              <p className="text-sm font-medium text-white truncate">
-                {user.fullName || 'Korisnik'}
-              </p>
-              <p className="text-xs text-navy-400 truncate">{user.email}</p>
-            </div>
-
-            {/* Menu Items */}
-            <div className="py-1">
-              <Link
-                href="/dashboard/profile"
-                onClick={() => setShowDropdown(false)}
-                className="flex items-center gap-3 px-4 py-2 text-sm text-navy-300 hover:bg-navy-700 hover:text-white transition-colors"
-              >
-                <User size={16} />
-                Moj profil
-              </Link>
-              <Link
-                href="/dashboard/settings"
-                onClick={() => setShowDropdown(false)}
-                className="flex items-center gap-3 px-4 py-2 text-sm text-navy-300 hover:bg-navy-700 hover:text-white transition-colors"
-              >
-                <Settings size={16} />
-                Podesavanja
-              </Link>
-            </div>
-
-            {/* Logout */}
-            <div className="border-t border-navy-700 py-1">
-              <button
-                onClick={() => {
-                  setShowDropdown(false)
-                  onLogout()
-                }}
-                className="flex items-center gap-3 w-full px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
-              >
-                <LogOut size={16} />
-                Odjava
-              </button>
-            </div>
-          </div>
-        </>
-      )}
+      {mounted && typeof document !== 'undefined' && createPortal(dropdownContent, document.body)}
     </div>
   )
 }
