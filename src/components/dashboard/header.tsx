@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
 import { useOrganization } from '@/lib/organization-context'
@@ -21,10 +21,23 @@ interface HeaderProps {
 // User Profile Dropdown Component - defined before Header
 function UserProfileDropdown({ user, onLogout }: { user: HeaderProps['user']; onLogout: () => void }) {
   const [showDropdown, setShowDropdown] = useState(false)
+  const buttonRef = useRef<HTMLButtonElement>(null)
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0 })
+
+  useEffect(() => {
+    if (showDropdown && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect()
+      setDropdownPosition({
+        top: rect.bottom + 4,
+        right: window.innerWidth - rect.right
+      })
+    }
+  }, [showDropdown])
 
   return (
     <div className="relative">
       <button
+        ref={buttonRef}
         onClick={() => setShowDropdown(!showDropdown)}
         className="flex items-center gap-2 px-2 lg:px-3 py-2 hover:bg-navy-700 rounded-lg transition-colors"
       >
@@ -40,10 +53,13 @@ function UserProfileDropdown({ user, onLogout }: { user: HeaderProps['user']; on
       {showDropdown && (
         <>
           <div
-            className="fixed inset-0 z-10"
+            className="fixed inset-0 z-40"
             onClick={() => setShowDropdown(false)}
           />
-          <div className="absolute top-full right-0 mt-1 w-56 bg-navy-800 rounded-lg shadow-xl border border-navy-600 z-20 py-1">
+          <div
+            className="fixed w-56 bg-navy-800 rounded-lg shadow-xl border border-navy-600 z-50 py-1"
+            style={{ top: dropdownPosition.top, right: dropdownPosition.right }}
+          >
             {/* User Info */}
             <div className="px-4 py-3 border-b border-navy-700">
               <p className="text-sm font-medium text-white truncate">
