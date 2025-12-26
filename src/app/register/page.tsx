@@ -85,7 +85,7 @@ export default function RegisterPage() {
           <img
             src="/logo.png"
             alt="SERVICEX"
-            className="h-24 w-auto"
+            className="h-48 w-auto"
           />
         </div>
 
