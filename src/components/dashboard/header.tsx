@@ -111,7 +111,7 @@ export function Header({ user, onMenuClick }: HeaderProps) {
   }
 
   return (
-    <header className="bg-navy-800/80 backdrop-blur-sm border-b border-navy-700 px-4 lg:px-6 py-3 lg:py-4">
+    <header className="bg-navy-800/80 backdrop-blur-sm border-b border-navy-700 px-4 lg:px-6 py-3 lg:py-4 overflow-visible">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3 lg:gap-4">
           {/* Mobile Menu Button */}

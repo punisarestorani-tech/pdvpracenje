@@ -91,14 +91,17 @@ export function InvoiceVerification({ invoice }: Props) {
   // Parse line_items safely
   const lineItems = parseLineItems(invoice.line_items)
 
-  // Get company data from organization settings
+  // Get company data from organization (direct columns first, then settings as fallback)
+  const org = currentOrganization
   const companyData = {
-    name: currentOrganization?.name || '',
-    pib: currentOrganization?.settings?.pib || '',
-    pdv_number: currentOrganization?.settings?.pdv_number || '',
-    address: currentOrganization?.settings?.address || '',
-    email: currentOrganization?.settings?.email || '',
-    phone: currentOrganization?.settings?.phone || '',
+    name: org?.name || '',
+    pib: org?.pib || org?.settings?.pib || '',
+    pdv_number: org?.pdv_number || org?.settings?.pdv_number || '',
+    address: org?.address
+      ? `${org.address}${org.city ? ', ' + org.city : ''}${org.postal_code ? ' ' + org.postal_code : ''}`
+      : org?.settings?.address || '',
+    email: org?.email || org?.settings?.email || '',
+    phone: org?.phone || org?.settings?.phone || '',
   }
 
   const [formData, setFormData] = useState({
@@ -482,68 +485,33 @@ export function InvoiceVerification({ invoice }: Props) {
             </Card>
           )}
 
-          {/* Buyer Info */}
+          {/* Buyer Info - Shows organization data */}
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg flex items-center gap-2 text-white">
-                  <Building size={20} className="text-teal-400" />
-                  Kupac (vasa firma)
-                </CardTitle>
-                {isEditing && companyData.name && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={fillBuyerFromCompany}
-                  >
-                    <RefreshCw size={14} className="mr-2" />
-                    Popuni iz postavki
-                  </Button>
-                )}
-              </div>
+              <CardTitle className="text-lg flex items-center gap-2 text-white">
+                <Building size={20} className="text-teal-400" />
+                Kupac (vasa firma)
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-navy-400 mb-1">
                   Naziv firme
                 </label>
-                {isEditing ? (
-                  <Input
-                    value={formData.buyer_name}
-                    onChange={(e) => handleInputChange('buyer_name', e.target.value)}
-                  />
-                ) : (
-                  <p className="text-white font-medium">{formData.buyer_name || '-'}</p>
-                )}
+                <p className="text-white font-medium">{companyData.name || '-'}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-navy-400 mb-1">
                   Adresa
                 </label>
-                {isEditing ? (
-                  <Input
-                    value={formData.buyer_address}
-                    onChange={(e) => handleInputChange('buyer_address', e.target.value)}
-                  />
-                ) : (
-                  <p className="text-navy-300">{formData.buyer_address || '-'}</p>
-                )}
+                <p className="text-navy-300">{companyData.address || '-'}</p>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-navy-400 mb-1">
                     PIB
                   </label>
-                  {isEditing ? (
-                    <Input
-                      value={formData.buyer_tax_id}
-                      onChange={(e) => handleInputChange('buyer_tax_id', e.target.value)}
-                      placeholder="Poreski identifikacioni broj"
-                    />
-                  ) : (
-                    <p className="text-navy-300">{formData.buyer_tax_id || '-'}</p>
-                  )}
+                  <p className="text-navy-300">{companyData.pib || '-'}</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-navy-400 mb-1">

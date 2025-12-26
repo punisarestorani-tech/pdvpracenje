@@ -53,7 +53,7 @@ export function DashboardShell({
           </div>
         )}
 
-        <div className="flex-1 flex flex-col min-w-0">
+        <div className="flex-1 flex flex-col min-w-0 overflow-visible">
           <Header user={user} onMenuClick={() => setSidebarOpen(true)} />
           <main className="flex-1 p-4 lg:p-6 pb-20 lg:pb-6">{children}</main>
         </div>

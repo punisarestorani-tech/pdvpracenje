@@ -12,6 +12,17 @@ export interface Organization {
   accountant_email: string | null
   settings: Record<string, any>
   created_at: string
+  // Direct columns from onboarding
+  pib?: string | null
+  pdv_number?: string | null
+  address?: string | null
+  city?: string | null
+  postal_code?: string | null
+  country?: string | null
+  phone?: string | null
+  email?: string | null
+  owner_name?: string | null
+  is_pdv_registered?: boolean
 }
 
 export interface OrganizationMember {
@@ -89,7 +100,17 @@ export function OrganizationProvider({
             logo_url,
             accountant_email,
             settings,
-            created_at
+            created_at,
+            pib,
+            pdv_number,
+            address,
+            city,
+            postal_code,
+            country,
+            phone,
+            email,
+            owner_name,
+            is_pdv_registered
           )
         `)
         .eq('user_id', user.id)

@@ -26,14 +26,18 @@ export default function SettingsPage() {
   useEffect(() => {
     if (currentOrganization) {
       const settings = currentOrganization.settings || {}
+      const org = currentOrganization
+      // Read from direct columns first (from onboarding), then fall back to settings
       setFormData({
-        name: currentOrganization.name || '',
-        pib: settings.pib || '',
-        pdv_number: settings.pdv_number || '',
-        address: settings.address || '',
-        email: settings.email || '',
-        phone: settings.phone || '',
-        accountant_email: currentOrganization.accountant_email || '',
+        name: org.name || '',
+        pib: org.pib || settings.pib || '',
+        pdv_number: org.pdv_number || settings.pdv_number || '',
+        address: org.address
+          ? `${org.address}${org.city ? ', ' + org.city : ''}${org.postal_code ? ' ' + org.postal_code : ''}`
+          : settings.address || '',
+        email: org.email || settings.email || '',
+        phone: org.phone || settings.phone || '',
+        accountant_email: org.accountant_email || '',
       })
     }
   }, [currentOrganization])
